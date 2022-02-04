@@ -1,0 +1,95 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: db
+spec:
+  ports:
+    - port: 5432
+      targetPort: 5432
+  selector:
+    app: postgres
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-deployment
+  labels:
+    app: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: db
+  template:
+    metadata:
+      labels:
+        app: db
+    spec:
+      containers:
+        - name: db
+          image: postgres:9.6
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_DB
+              value: game-ledger
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: secret-db-auth
+                  key: username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secret-db-auth
+                  key: password
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: game-ledger
+spec:
+  ports:
+    - port: 5432
+      targetPort: 5432
+  selector:
+    app: game-ledger
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: game-ledger-deployment
+  labels:
+    app: game-ledger
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: game-ledger
+  template:
+    metadata:
+      labels:
+        app: game-ledger
+    spec:
+      containers:
+        - name: nginx
+          image: postgres:9.6
+          ports:
+            - containerPort: 8000
+          env:
+            - name: POSTGRES_HOST
+              value: postgres
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: POSTGRES_DB
+              value: game-ledger
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: secret-db-auth
+                  key: username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: secret-db-auth
+                  key: password
