@@ -73,9 +73,10 @@ Following names are directly linked to the eponymous resource and are URL paths 
    1. `GET` – AL 4. Has parameter `id`. Returns json object with all fields that have equal or lower access level. Unregistered users get response 401. Users that share a party also get the field `games`. Owner of the account additionally get the field `email`.
    1. `PATCH` – AL 2. Requires parameter `id`. Contains JSON encoded body with the fragments of the `User` resource. If the fragment provides the field `id` it needs to match the URL parameter `id`, otherwise it should fail with error 400. Used for modifying the parts of the resource.
 
-1. `user/activate` is not a resource, just a part of authentication mechanism.
+1. `user/auth` is not a resource but an authentication mechanism
 
-   1. `GET` – AL 5. Requires parameters `token`, and `redirect`. Upon successfull activation invalidates token, sets authentication cookie and redirects to the url specified in the corresponding field.
+   1. `POST` – AL 5. Accepts JSON encoded body with one mandatory field `email` with string value and one optional field `register` with boolean value. If the `register` flag is not present or is is set to false, the user ideintified by the email will be emailed authentication url. If the `register` field is set to `true` and there is no registered user with provided email then the registration url will be emailed. In other cases error code will return and no emails will be sent.
+   1. `GET` – AL 5. Has a required parameter `token`, and optional `redirect` and `register`. Upon successfull activation invalidates token, sets authentication cookie and redirects to the url specified in the corresponding field. Same process would happen if parameter register is present, only the token will be checked against pending registrations and will let user create the account.
 
 1. `game`
 

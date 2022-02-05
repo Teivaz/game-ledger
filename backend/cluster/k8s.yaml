@@ -73,7 +73,7 @@ spec:
     spec:
       containers:
         - name: nginx
-          image: postgres:9.6
+          image: our-image-goes-here
           ports:
             - containerPort: 8000
           env:
