@@ -112,9 +112,9 @@ def user_get():
     current_user = get_current_user()
     if current_user is None:
         raise Unauthorized()
-    requested_user_ids = request.args.get("id", current_user.id)
-    if type(requested_user_ids) != list:
-        requested_user_ids = [requested_user_ids]
+    requested_user_ids = request.args.getlist("id")
+    if not requested_user_ids:
+        requested_user_ids = [current_user.id]
 
     requested_users = [User.get_by_id(context.conn, id) for id in requested_user_ids]
     response = [
