@@ -92,7 +92,7 @@ class User(AlManagedClass):
                     name,
                     profile_image,
                     (
-                        SELECT jsonb_agg(party_id)
+                        SELECT coalesce(jsonb_agg(party_id), '[]'::jsonb)
                         FROM party_member
                         WHERE user_id = %s
                     ) as parties,
