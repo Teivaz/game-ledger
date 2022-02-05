@@ -94,7 +94,7 @@ def get_current_user():
         return None
 
 
-@app.route("/api/user", methods=["GET", "POST", "DELETE"])
+@app.route("/api/user/", methods=["GET", "POST", "DELETE"])
 def cmon_flask_i_want_different_handlers_for_methods_2():
     if request.method == "GET":
         return user_get()
