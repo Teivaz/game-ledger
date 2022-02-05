@@ -116,7 +116,7 @@ def user_get():
     if type(requested_user_ids) != list:
         requested_user_ids = [requested_user_ids]
 
-    requested_users = [User.get_by_id(id) for id in requested_user_ids]
+    requested_users = [User.get_by_id(context.conn, id) for id in requested_user_ids]
     response = [
         u.to_dict(u.get_access_level_for_user(current_user)) for u in requested_users
     ]

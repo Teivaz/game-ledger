@@ -69,7 +69,7 @@ class User(AlManagedClass):
             (created, duration, source, user_id, expired) = cur.fetchone()
             if expired:
                 raise Gone()
-        return User.get_by_id(connection, user_id)
+        return User.get_by_id(conn, user_id)
 
     @staticmethod
     def get_by_email(conn: connection, email: str) -> "User":
@@ -78,7 +78,7 @@ class User(AlManagedClass):
             if cur.rowcount == 0:
                 raise NotFound()
             (id,) = cur.fetchone()
-        return User.get_by_id(id)
+        return User.get_by_id(conn, id)
 
     @staticmethod
     def get_by_id(conn: connection, user_id: int) -> "User":
@@ -92,7 +92,7 @@ class User(AlManagedClass):
                     name,
                     profile_image,
                     (
-                        SELECT array_agg(party_id)
+                        SELECT jsonb_agg(party_id)
                         FROM party_member
                         WHERE user_id = %s
                     ) as parties,
@@ -100,13 +100,14 @@ class User(AlManagedClass):
                 FROM users
                 WHERE id = %s;
                 """,
-                (user_id, user_id, user_id),
+                (user_id, user_id),
             )
             if cur.rowcount == 0:
                 raise NotFound()
             (
                 result.id,
                 result.email,
+                result.name,
                 result.profile_image,
                 result.parties,
                 result.owned_games,

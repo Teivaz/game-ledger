@@ -18,12 +18,12 @@ class AlManagedField:
         self.w = w
 
     def getattr(self, obj: "AlManagedClass", al: AccessLevel) -> Union[Any, None]:
-        if al <= self.r:
-            return getattr(obj, self.field)
+        if al.value <= self.r.value:
+            return getattr(obj, self.name)
 
     def setattr(self, obj: "AlManagedClass", al: AccessLevel, value: Any):
-        if al <= self.w:
-            setattr(obj, self.field, value)
+        if al.value <= self.w.value:
+            setattr(obj, self.name, value)
 
 
 class AlManagedClass:
