@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Iterable, Any
+from typing import Iterable, Any, Union
 
 
 class AccessLevel(Enum):
@@ -17,7 +17,7 @@ class AlManagedField:
         self.r = r
         self.w = w
 
-    def getattr(self, obj: "AlManagedClass", al: AccessLevel) -> Any | None:
+    def getattr(self, obj: "AlManagedClass", al: AccessLevel) -> Union[Any, None]:
         if al <= self.r:
             return getattr(obj, self.field)
 

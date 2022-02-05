@@ -1,7 +1,7 @@
-from atexit import register
 from multiprocessing import context
 from game_ledger.context import Context
-from http import HTTPStatus
+from game_ledger.app import app
+from werkzeug.exceptions import *
 from datetime import timedelta
 from flask import request, make_response, redirect, jsonify
 from game_ledger.resources.user import User
@@ -9,35 +9,40 @@ from game_ledger.resources.user import User
 _auth_token_name = "gl_auth_token"
 
 
-@app.route("/user", method="GET")
-def user_get():
-    pass
-
-
 # TODO: move this from global to application scope
 context = Context()
 
 
-@app.route("/user/auth", method="POST")
+@app.route("/api/user/auth/", methods=["POST", "GET"])
+def cmon_flask_i_want_different_handlers_for_methods():
+    if request.method == "GET":
+        return user_auth_get()
+    if request.method == "POST":
+        return user_auth_post()
+    else:
+        raise MethodNotAllowed()
+
+
 def user_auth_post():
-    # check if the content type is application/json
-    # then parse the json body
+    body = request.get_json()
+    if body is None:
+        raise BadRequest()
     email = body.get("email", None)
     if email is None:
-        raise HTTPStatus.BAD_REQUEST
+        raise BadRequest()
     register = body.get("register", False)
 
     if register:
         try:
             User.get_by_email(context.conn, email)
-        except HTTPStatus.NOT_FOUND:
+        except NotFound:
             pass
         else:
-            raise HTTPStatus.BAD_REQUEST from None
+            raise BadRequest() from None
 
         temp_signin_token = context.token_controller.new_register_token(email)
         context.user_comms.send_register_email(email, temp_signin_token)
-        return HTTPStatus.OK
+        return ""
 
     user = User.get_by_email(context.conn, email)
     auth_token = user.create_auth_token(
@@ -45,29 +50,26 @@ def user_auth_post():
     )
     temp_auth_token = context.token_controller.new_signin_token(auth_token)
     context.user_comms.send_auth_email(email, temp_auth_token)
+    return ""
 
 
-@app.route("/user/auth", method="GET")
 def user_auth_get():
-    register = request.args.get("register", False)
+    register = "register" in request.args
     redirect_url = request.args.get("redirect", "/")
     token = request.args.get("token", None)
     if token is None:
-        raise HTTPStatus.BAD_REQUEST
+        raise BadRequest()
 
     if register:
         email = context.token_controller.use_register_token(token)
         try:
             User.get_by_email(context.conn, email)
-        except HTTPStatus.NOT_FOUND:
+        except NotFound:
             pass
         else:
-            raise HTTPStatus.BAD_REQUEST from None
+            raise BadRequest() from None
 
-        user = User()
-        user.name = "Player"
-        user.email = email
-        user.save(context.conn)
+        user = User.create(context.conn, name="Player", email=email)
         auth_token = user.create_auth_token(
             context.conn, timedelta(days=30), request.headers["User-Agent"]
         )
@@ -86,17 +88,30 @@ def get_current_user():
         return None
     try:
         return User.auth_by_token(context.conn, token)
-    except HTTPStatus.NOT_FOUND:
+    except NotFound:
         return None
-    except HTTPStatus.GONE:
+    except Gone:
         return None
 
 
-@app.route("/user", method="GET")
+@app.route("/api/user", methods=["GET", "POST", "DELETE"])
+def cmon_flask_i_want_different_handlers_for_methods_2():
+    if request.method == "GET":
+        return user_get()
+    if request.method == "POST":
+        return user_post()
+    if request.method == "PATCH":
+        return user_patch()
+    if request.method == "DELETE":
+        return user_delete()
+    else:
+        return MethodNotAllowed()
+
+
 def user_get():
     current_user = get_current_user()
     if current_user is None:
-        raise HTTPStatus.UNAUTHORIZED
+        raise Unauthorized()
     requested_user_ids = request.args.get("id", current_user.id)
     if type(requested_user_ids) != list:
         requested_user_ids = [requested_user_ids]
@@ -106,3 +121,13 @@ def user_get():
         u.to_dict(u.get_access_level_for_user(current_user)) for u in requested_users
     ]
     return jsonify(response)
+
+def user_post():
+    pass
+
+def user_patch():
+    pass
+
+def user_delete():
+    pass
+

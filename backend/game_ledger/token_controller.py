@@ -1,6 +1,6 @@
 from typing import Dict
 import string, secrets
-from http import HTTPStatus
+from werkzeug.exceptions import *
 
 _alphabet = string.ascii_letters + string.digits
 _token_size = 64
@@ -34,17 +34,17 @@ class TokenController:
     def use_party_invite(self, token: str) -> int:
         party_id = self.pending_party_invites.pop(token, None)
         if party_id is None:
-            raise HTTPStatus.NOT_FOUND
+            raise NotFound()
         return party_id
 
     def use_register_token(self, token: str) -> str:
         email = self.pending_register_tokens.pop(token, None)
         if email is None:
-            raise HTTPStatus.NOT_FOUND
+            raise NotFound()
         return email
 
     def use_signin_token(self, token: str) -> str:
         auth_token = self.pending_signin_tokens.pop(token, None)
         if auth_token is None:
-            raise HTTPStatus.NOT_FOUND
+            raise NotFound()
         return auth_token

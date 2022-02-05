@@ -1,13 +1,13 @@
 import string, secrets
-from typing import List
+from typing import List, Any
 from game_ledger.access_manager import AlManagedClass, AlManagedField, AccessLevel
-from psycopg2 import connection
 from datetime import timedelta
-from http import HTTPStatus
+from werkzeug.exceptions import *
 
 _alphabet = string.ascii_letters + string.digits
 _token_size = 255
 
+connection = Any # psycopg2 has problem with typing
 
 class User(AlManagedClass):
     _fields = (
@@ -65,10 +65,10 @@ class User(AlManagedClass):
                 (token,),
             )
             if cur.rowcount == 0:
-                raise HTTPStatus.NOT_FOUND
+                raise NotFound()
             (created, duration, source, user_id, expired) = cur.fetchone()
             if expired:
-                raise HTTPStatus.GONE
+                raise Gone()
         return User.get_by_id(connection, user_id)
 
     @staticmethod
@@ -76,7 +76,7 @@ class User(AlManagedClass):
         with conn.cursor() as cur:
             cur.execute("SELECT id FROM users WHERE email = %s;", (email,))
             if cur.rowcount == 0:
-                raise HTTPStatus.NOT_FOUND
+                raise NotFound()
             (id,) = cur.fetchone()
         return User.get_by_id(id)
 
@@ -103,7 +103,7 @@ class User(AlManagedClass):
                 (user_id, user_id, user_id),
             )
             if cur.rowcount == 0:
-                raise HTTPStatus.NOT_FOUND
+                raise NotFound()
             (
                 result.id,
                 result.email,
@@ -112,6 +112,26 @@ class User(AlManagedClass):
                 result.owned_games,
             ) = cur.fetchone()
         return result
+
+    @staticmethod
+    def create(conn: connection, name: str, email: str):
+        result = User()
+        result.name = name
+        result.email = email
+        with conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO users (email, name) VALUES (%s, %s) RETURNING id;
+                    """,
+                    (
+                        email,
+                        name,
+                    ),
+                )
+                (result.id,) = cur.fetchone()
+        return result
+
 
     def save(self, conn: connection):
         with conn:
