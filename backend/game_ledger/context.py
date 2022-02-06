@@ -20,3 +20,8 @@ class Context:
     def _start_db(self):
         # First check if tables exist and create if not
         pass
+
+    def send_mail(self, to_email: str, from_email: str, subject: str, body: str):
+        # TODO: remove when emails work
+        print(f"email: {body}")
+

@@ -18,6 +18,6 @@ FLASK_ENV=development FLASK_APP=game_ledger python -m flask run
 ### To create user
 
 1. Run the app
-2. Send POST request to "/api/user/auth/" with body `{"register": true, "email": "test"}` and header `Content-Type=application/json`
+2. Send POST request to "/api/user/register/" with body `{"name": "tester", "email": "test"}` and header `Content-Type=application/json`
 3. In the app logs look for the token
-4. Send GET request to "/api/user/auth" with `register` arg present and `token` arg being the found token. This will set correct cookies in the response so following requests will be authorised
+4. Send GET request to "/api/user/register/" with `token` arg containing the found token. This will set correct cookies in the response so following requests will be authorised

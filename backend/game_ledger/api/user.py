@@ -13,72 +13,97 @@ _auth_token_name = "gl_auth_token"
 context = Context()
 
 
-@app.route("/api/user/auth/", methods=["POST", "GET"])
-def cmon_flask_i_want_different_handlers_for_methods():
+@app.route("/api/user/register/", methods=["POST", "GET"])
+def cmon_flask_i_want_different_handlers_for_methods_3():
     if request.method == "GET":
-        return user_auth_get()
+        return user_register_get()
     if request.method == "POST":
-        return user_auth_post()
+        return user_register_post()
     else:
         raise MethodNotAllowed()
 
 
-def user_auth_post():
+def user_register_post():
     body = request.get_json()
     if body is None:
         raise BadRequest()
     email = body.get("email", None)
     if email is None:
         raise BadRequest()
-    register = body.get("register", False)
+    try:
+        User.get_by_email(context.conn, email)
+    except NotFound:
+        pass
+    else:
+        raise BadRequest() from None
 
-    if register:
-        try:
-            User.get_by_email(context.conn, email)
-        except NotFound:
-            pass
-        else:
-            raise BadRequest() from None
+    temp_register_token = context.token_controller.new_register_token(body)
+    context.user_comms.send_register_email(context, email, temp_register_token)
+    return ""
 
-        temp_signin_token = context.token_controller.new_register_token(email)
-        context.user_comms.send_register_email(email, temp_signin_token)
-        return ""
+
+def user_register_get():
+    redirect_url = request.args.get("redirect", "/")
+    token = request.args.get("token", None)
+    if token is None:
+        raise BadRequest()
+
+    user_data = context.token_controller.use_register_token(token)
+    try:
+        User.get_by_email(context.conn, user_data["email"])
+    except NotFound:
+        pass
+    else:
+        raise Gone() from None
+
+    name = user_data.get("name", "Player")
+    user = User.create(context.conn, name=name, email=user_data["email"])
+    auth_token = user.create_auth_token(
+        context.conn, timedelta(days=30), request.headers["User-Agent"]
+    )
+
+    response = redirect(redirect_url)
+    response.set_cookie(_auth_token_name, auth_token, secure=True, httponly=True)
+    return response
+
+
+@app.route("/api/user/signin/", methods=["POST", "GET"])
+def cmon_flask_i_want_different_handlers_for_methods():
+    if request.method == "GET":
+        return user_signin_get()
+    if request.method == "POST":
+        return user_signin_post()
+    else:
+        raise MethodNotAllowed()
+
+
+def user_signin_post():
+    body = request.get_json()
+    if body is None:
+        raise BadRequest()
+    email = body.get("email", None)
+    if email is None:
+        raise BadRequest()
 
     user = User.get_by_email(context.conn, email)
     auth_token = user.create_auth_token(
         context.conn, timedelta(days=30), request.headers["User-Agent"]
     )
     temp_auth_token = context.token_controller.new_signin_token(auth_token)
-    context.user_comms.send_auth_email(email, temp_auth_token)
+    context.user_comms.send_auth_email(context, email, temp_auth_token)
     return ""
 
 
-def user_auth_get():
-    register = "register" in request.args
+def user_signin_get():
     redirect_url = request.args.get("redirect", "/")
     token = request.args.get("token", None)
     if token is None:
         raise BadRequest()
 
-    if register:
-        email = context.token_controller.use_register_token(token)
-        try:
-            User.get_by_email(context.conn, email)
-        except NotFound:
-            pass
-        else:
-            raise BadRequest() from None
+    auth_token = context.token_controller.use_signin_token(token)
 
-        user = User.create(context.conn, name="Player", email=email)
-        auth_token = user.create_auth_token(
-            context.conn, timedelta(days=30), request.headers["User-Agent"]
-        )
-
-    else:
-        auth_token = context.token_controller.use_signin_token(token)
-
-    response = make_response(redirect(redirect_url))
-    response.set_cookie(_auth_token_name, auth_token)
+    response = redirect(redirect_url)
+    response.set_cookie(_auth_token_name, auth_token, secure=True, httponly=True)
     return response
 
 
@@ -122,12 +147,38 @@ def user_get():
     ]
     return jsonify(response)
 
+
 def user_post():
     pass
 
+
 def user_patch():
-    pass
+    current_user = get_current_user()
+    if current_user is None:
+        raise Unauthorized()
+    requested_user_id = request.args.get("id")
+    if requested_user_id != current_user.id:
+        raise Unauthorized()
+    body = request.get_json()
+    if body is None:
+        raise BadRequest()
+    current_user.update_from_dict(body)
+    current_user.save(context.conn)
+    return ""
+
 
 def user_delete():
-    pass
-
+    current_user = get_current_user()
+    if current_user is None:
+        raise Unauthorized()
+    requested_user_id = request.args.get("id")
+    if requested_user_id != current_user.id:
+        raise Unauthorized()
+    body = request.get_json()
+    if body is None:
+        raise BadRequest()
+    requested_user_id = body.get("id", current_user.id)
+    if requested_user_id != current_user.id:
+        raise Unauthorized()
+    current_user.delete(context.conn)
+    return ""

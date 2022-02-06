@@ -192,6 +192,21 @@ checkqa-mypy = ["mypy (==v0.761)"]
 testing = ["argcomplete", "hypothesis (>=3.56)", "mock", "nose", "requests", "xmlschema"]
 
 [[package]]
+name = "python-configuration"
+version = "0.8.2"
+description = "A library to load configuration parameters from multiple sources and formats"
+category = "main"
+optional = false
+python-versions = ">=3.6,<4.0"
+
+[package.extras]
+azure = ["azure-identity (>=1.5.0,<2.0.0)", "azure-keyvault (>=4.0.0,<5.0.0)"]
+aws = ["boto3 (>=1.10.48,<2.0.0)"]
+gcp = ["google-cloud-secret-manager (>=2.0.0,<3.0.0)"]
+yaml = ["pyyaml (>=5.1,<6.0)"]
+toml = ["toml (>=0.10.0,<0.11.0)"]
+
+[[package]]
 name = "tomli"
 version = "2.0.0"
 description = "A lil' TOML parser"
@@ -229,7 +244,7 @@ watchdog = ["watchdog"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "56e6858d57ffc348cc996ca8ce732ee4793331a2d3ee0e84645aa75b398771e5"
+content-hash = "5908c60de96bdaafe8dc76b4bea50e4cc259472db4783d3129f50e371a0f5d7f"
 
 [metadata.files]
 atomicwrites = [
@@ -393,6 +408,10 @@ pyparsing = [
 pytest = [
     {file = "pytest-5.4.3-py3-none-any.whl", hash = "sha256:5c0db86b698e8f170ba4582a492248919255fcd4c79b1ee64ace34301fb589a1"},
     {file = "pytest-5.4.3.tar.gz", hash = "sha256:7979331bfcba207414f5e1263b5a0f8f521d0f457318836a7355531ed1a4c7d8"},
+]
+python-configuration = [
+    {file = "python-configuration-0.8.2.tar.gz", hash = "sha256:d733f788aabed4fb0e35020a0c428731f56a3dcebc787f82e9665e4cacc00861"},
+    {file = "python_configuration-0.8.2-py3-none-any.whl", hash = "sha256:71d933a1dc7cc5c4c5196d9818456592dd6fdc684bf45db2f4c7dc37de58dd73"},
 ]
 tomli = [
     {file = "tomli-2.0.0-py3-none-any.whl", hash = "sha256:b5bde28da1fed24b9bd1d4d2b8cba62300bfb4ec9a6187a957e8ddb9434c5224"},
