@@ -1,2 +1,3 @@
 backend/cluster/secret.yaml
 .vscode/
+.DS_Store
