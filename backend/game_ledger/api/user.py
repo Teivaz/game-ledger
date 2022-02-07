@@ -1,9 +1,10 @@
 from multiprocessing import context
 from game_ledger.context import Context
 from game_ledger.app import app
+from game_ledger.user_comms import UserComms
 from werkzeug.exceptions import *
 from datetime import timedelta
-from flask import request, make_response, redirect, jsonify
+from flask import request, redirect, jsonify
 from game_ledger.resources.user import User
 
 _auth_token_name = "gl_auth_token"
@@ -38,7 +39,7 @@ def user_register_post():
         raise BadRequest() from None
 
     temp_register_token = context.token_controller.new_register_token(body)
-    context.user_comms.send_register_email(context, email, temp_register_token)
+    UserComms.send_register_email(context, email, temp_register_token)
     return ""
 
 
@@ -90,7 +91,7 @@ def user_signin_post():
         context.conn, timedelta(days=30), request.headers["User-Agent"]
     )
     temp_auth_token = context.token_controller.new_signin_token(auth_token)
-    context.user_comms.send_auth_email(context, email, temp_auth_token)
+    UserComms.send_auth_email(context, email, temp_auth_token)
     return ""
 
 

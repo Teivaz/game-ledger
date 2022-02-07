@@ -77,19 +77,24 @@ spec:
           ports:
             - containerPort: 8000
           env:
-            - name: POSTGRES_HOST
+            - name: gameledger__postgres_host
               value: postgres
             - name: POSTGRES_PORT
               value: "5432"
-            - name: POSTGRES_DB
+            - name: gameledger__postgres_db
               value: game-ledger
-            - name: POSTGRES_USER
+            - name: gameledger__postgres_user
               valueFrom:
                 secretKeyRef:
                   name: secret-db-auth
                   key: username
-            - name: POSTGRES_PASSWORD
+            - name: gameledger__postgres_password
               valueFrom:
                 secretKeyRef:
                   name: secret-db-auth
                   key: password
+            - name: gameledger__elasticemail_api_key
+              valueFrom:
+                secretKeyRef:
+                  name: secret-elasticmail
+                  key: apiKey
