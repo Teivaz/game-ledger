@@ -22,7 +22,7 @@ Tracking board games progress
 - `name` – displayed user name. Read AL 4, write AL 2.
 - `profile_image` – avatar. Read AL 4, write AL 2.
 - `parties` – list of `Party.id` that the user is member of. Read AL 2, write AL 0.
-- `owned_games` – list of `Game.id` that the user is the owner of. Read AL 3, write AL 2.
+- `games` – list of `Game.id` that the user is the owner of. Read AL 3, write AL 2.
 
 2. `Game`. All fields have read AL 5, 3, or 2 (depending on value of the `access level` field) and write AL 2 unless specified.
 
@@ -85,7 +85,7 @@ Following names are directly linked to the eponymous resource and are URL paths 
 
 1. `/api/game/`
 
-   1. `POST` – AL 4. Accepts JSON encoded body with all fields of the resource `Game`. Fields with insufficient permissions errors are ignored. Upon success creates a resource `Game` and returns its id. The requesting user is set as the author. The created resource id is added the list of `User.owned_games`.
+   1. `POST` – AL 4. Accepts JSON encoded body with all fields of the resource `Game`. Fields with insufficient permissions errors are ignored. Upon success creates a resource `Game` and returns its id. The requesting user is set as the author. The created resource id is added the list of `User.games`.
    1. `GET` – AL 5, 3, or 2 depending on the value of the `access level` field.
       1. Requires at least one parameter `id`. Returns JSON encoded list of `Game` resources that can have corresponding access level.
       1. Alternatively can require parameters `find`. Returns JSON encoded list of `Game` resources that have corresponding access level and have requested substring in the `Game.name` field.
