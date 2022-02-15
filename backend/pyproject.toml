@@ -6,7 +6,7 @@ authors = ["teivaz <o.kuznietsov@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-psycopg2 = "^2.9.3"
+psycopg2-binary = "^2.9.3"
 Flask = "^2.0.2"
 python-configuration = "^0.8.2"
 
