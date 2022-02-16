@@ -47,7 +47,7 @@ class UserApi(MethodView):
         return ""
 
     def delete(self):
-        current_user = self.get_current_user()
+        current_user = context.get_current_user()
         if current_user is None:
             raise Unauthorized()
         requested_user_id = request.args.get("id")
