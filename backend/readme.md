@@ -3,13 +3,13 @@
 Execute following commands in the `backend` folder
 
 ```
-docker build . -t game-ledger-frontend:$(poetry version -s)
+docker build . -t game-ledger-backend:$(poetry version -s)
 ```
 
 And then push with
 
 ```
-docker push game-ledger-frontend:$(poetry version -s)
+docker push game-ledger-backend:$(poetry version -s)
 ```
 
 ### To run locally

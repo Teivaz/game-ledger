@@ -19,11 +19,11 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: db
+      app: postgres
   template:
     metadata:
       labels:
-        app: db
+        app: postgres
     spec:
       containers:
         - name: db
@@ -77,8 +77,14 @@ spec:
           ports:
             - containerPort: 8000
           env:
+            - name: APP_NUM_WORKERS
+              value: "1"
+            - name: APP_HOST
+              value: "0.0.0.0"
+            - name: APP_PORT
+              value: "8000"
             - name: gameledger__postgres_host
-              value: postgres
+              value: db
             - name: POSTGRES_PORT
               value: "5432"
             - name: gameledger__postgres_db
@@ -135,26 +141,78 @@ spec:
             - name: gameledger__postgres_host
               value: postgres
 ---
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+apiVersion: v1
+kind: Service
 metadata:
-  name: ingress
+  name: nginx
 spec:
-  - host: gameledger.app
-    rules:
-    - http:
-        paths:
-        - path: /
-          pathType: Prefix
-          backend:
-            service:
-              name: frontend
-              port:
-                number: 8000
-        - path: /api
-          pathType: Prefix
-          backend:
-            service:
-              name: backend
-              port:
-                number: 8000
+  type: NodePort
+  selector:
+    app: nginx
+  ports:
+    - port: 80
+      targetPort: 80
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config2
+data:
+  nginx.conf: |-
+    events {}
+    http {
+      upstream backend {
+        server backend:8000;
+      }
+      upstream frontend {
+        server frontend:8000;
+      }
+
+      server {
+        listen 80;
+        location /api/ {
+            proxy_pass http://backend;
+            proxy_set_header Host $host;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+        location / {
+            proxy_pass http://frontend;
+            proxy_set_header Host $host;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: nginx
+  name: nginx-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      volumes:
+        - name: config-volume
+          configMap:
+            name: nginx-config2
+      containers:
+        - name: nginx
+          image: nginx:1.21
+          ports:
+            - containerPort: 80
+          env:
+            - name: gameledger__postgres_host
+              value: postgres
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/nginx
+              readOnly: true
+      restartPolicy: Always
