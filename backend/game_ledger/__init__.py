@@ -1,1 +1,2 @@
-from game_ledger.app import app
+from . import context
+from .api import blueprint

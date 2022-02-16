@@ -1,3 +1,17 @@
+### To build docker container
+
+Execute following commands in the `backend` folder
+
+```
+docker build . -t game-ledger-frontend:$(poetry version -s)
+```
+
+And then push with
+
+```
+docker push game-ledger-frontend:$(poetry version -s)
+```
+
 ### To run locally
 
 1. Start a postgres db with
@@ -6,9 +20,8 @@
 docker run -d -p 5432:5432 -e POSTGRES_DB=game-ledger -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=admin postgres:9.6
 ```
 
-
-2. Create necessary tables for the database using commands from the "backend/game_ledger/resources/tables.sql" file.
-_Note_ on MacOS you need to have postgress installed prior to installing dependencies. To do so run `brew install postgresql`.
+2. Create necessary tables for the database using commands from the "backend/game*ledger/resources/tables.sql" file.
+   \_Note* on MacOS you need to have postgress installed prior to installing dependencies. To do so run `brew install postgresql`.
 3. Install dependencies with `poetry install`
 4. Activate virtual environment with `poetry shell`
 5. Run the app with

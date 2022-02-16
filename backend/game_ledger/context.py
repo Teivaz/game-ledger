@@ -1,42 +1,56 @@
 from game_ledger.token_controller import TokenController
 from game_ledger.config import cfg
+from game_ledger.email import send_mail
 from psycopg2 import connect
-import http.client, json, urllib.parse
-from werkzeug.exceptions import InternalServerError
+import flask
 
-class Context:
-    def __init__(self):
-        self.conn = connect(
-            host=cfg["postgres_host"],
-            port=int(cfg["postgres_port"]),
-            dbname=cfg["postgres_db"],
-            user=cfg["postgres_user"],
-            password=cfg["postgres_password"],
-        )
-        self.token_controller = TokenController()
 
-        self._start_db()
+def init():
+    flask.g.db = connect(
+        host=cfg["postgres_host"],
+        port=int(cfg["postgres_port"]),
+        dbname=cfg["postgres_db"],
+        user=cfg["postgres_user"],
+        password=cfg["postgres_password"],
+    )
+    flask.g.token_controller = TokenController()
 
-    def _start_db(self):
-        # First check if tables exist and create if not
-        pass
+    _init_db_tables(flask.g.db)
 
-    def send_mail(self, to_email: str, from_email: str, from_name: str, subject: str, body_text: str, body_html: str):
-        conn = http.client.HTTPSConnection("api.elasticemail.com")
-        payload = {
-            "apikey": cfg["elasticemail_api_key"],
-            "subject": subject,
-            "from": from_email,
-            "fromName": from_name,
-            "to": to_email,
-            "bodyHtml": body_html,
-            "bodyText": body_text,
-            "isTransactional": True
-        }
-        conn.request("POST", "/v2/email/send/?" + urllib.parse.urlencode(payload))
-        res = conn.getresponse()
-        data = res.read()
-        response_obj = json.loads(data.decode("utf-8"))
-        if not response_obj["success"]:
-            raise InternalServerError()
 
+def _init_db_tables(connection):
+    # First check if tables exist and create if not
+    # Perhaps we can use a db migration mechanism
+    pass
+
+
+def get_token_controller() -> TokenController:
+    return flask.g.token_controller
+
+
+def get_db_connection():
+    return flask.g.db
+
+
+def send_auth_email(email: str, token: str):
+    base_url = cfg["base_url"]
+    send_mail(
+        to_email=email,
+        from_email=cfg["email"],
+        from_name="Game Ledger System",
+        subject="GameLedger Sign In Request",
+        body_html=f'To sign in into the GameLedger please follow the link <a href="{base_url}/api/user/signin/?token={token}">Sign In</a>',
+        body_text=f"To sign in into the GameLedger please enter the link in your browser\n{base_url}/api/user/signin/?token={token}\n",
+    )
+
+
+def send_register_email(email: str, token: str):
+    base_url = cfg["base_url"]
+    send_mail(
+        to_email=email,
+        from_email=cfg["email"],
+        from_name="Game Ledger System",
+        subject="GameLedger Sign Up Request",
+        body_html=f'To proceed registering in GameLedger please follow the link <a href="{base_url}/api/user/register/&token={token}">Sign Up</a>',
+        body_text=f"To proceed registering in GameLedger please enter the link in your browser\n{base_url}/api/user/register/&token={token}\n",
+    )

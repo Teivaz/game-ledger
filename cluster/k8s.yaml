@@ -47,33 +47,33 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: game-ledger
+  name: backend
 spec:
   ports:
-    - port: 5432
-      targetPort: 5432
+    - port: 8000
+      targetPort: 8000
   selector:
-    app: game-ledger
+    app: backend
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: game-ledger-deployment
+  name: backend-deployment
   labels:
-    app: game-ledger
+    app: backend
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
-      app: game-ledger
+      app: backend
   template:
     metadata:
       labels:
-        app: game-ledger
+        app: backend
     spec:
       containers:
-        - name: nginx
-          image: our-image-goes-here
+        - name: game-ledger
+          image: game-ledger-backend:0.1.0
           ports:
             - containerPort: 8000
           env:
@@ -98,3 +98,63 @@ spec:
                 secretKeyRef:
                   name: secret-elasticmail
                   key: apiKey
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+spec:
+  ports:
+    - port: 8000
+      targetPort: 8000
+  selector:
+    app: frontend
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-deployment
+  labels:
+    app: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: game-ledger
+          image: game-ledger-frontend:0.1.0
+          ports:
+            - containerPort: 8000
+          env:
+            - name: gameledger__postgres_host
+              value: postgres
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress
+spec:
+  - host: gameledger.app
+    rules:
+    - http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: frontend
+              port:
+                number: 8000
+        - path: /api
+          pathType: Prefix
+          backend:
+            service:
+              name: backend
+              port:
+                number: 8000
