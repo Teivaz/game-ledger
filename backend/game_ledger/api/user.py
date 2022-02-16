@@ -6,27 +6,14 @@ from flask.views import MethodView
 from game_ledger.resources.user import User
 import flask
 
-_auth_token_name = "gl_auth_token"
-
 
 def is_production():
     return flask.current_app.config["ENV"] == "production"
 
-class UserApi(MethodView):
-    @staticmethod
-    def _get_current_user():
-        token = request.cookies.get(_auth_token_name)
-        if token is None:
-            return None
-        try:
-            return User.auth_by_token(context.get_db_connection(), token)
-        except NotFound:
-            return None
-        except Gone:
-            return None
 
+class UserApi(MethodView):
     def get(self):
-        current_user = self._get_current_user()
+        current_user = context.get_current_user()
         if current_user is None:
             raise Unauthorized()
         requested_user_ids = request.args.getlist("id")
@@ -46,7 +33,7 @@ class UserApi(MethodView):
         pass
 
     def patch(self):
-        current_user = self._get_current_user()
+        current_user = context.get_current_user()
         if current_user is None:
             raise Unauthorized()
         requested_user_id = request.args.get("id")
@@ -120,7 +107,9 @@ class UserRegisterApi(MethodView):
         )
 
         response = redirect(redirect_url)
-        response.set_cookie(_auth_token_name, auth_token, secure=is_production(), httponly=True)
+        response.set_cookie(
+            context.auth_token_name, auth_token, secure=is_production(), httponly=True
+        )
         return response
 
 
@@ -139,9 +128,7 @@ class UserSignInApi(MethodView):
             timedelta(days=30),
             request.headers["User-Agent"],
         )
-        temp_auth_token = context.get_token_controller().new_signin_token(
-            auth_token
-        )
+        temp_auth_token = context.get_token_controller().new_signin_token(auth_token)
         context.send_auth_email(email, temp_auth_token)
         return ""
 
@@ -154,7 +141,9 @@ class UserSignInApi(MethodView):
         auth_token = context.get_token_controller().use_signin_token(token)
 
         response = redirect(redirect_url)
-        response.set_cookie(_auth_token_name, auth_token, secure=is_production(), httponly=True)
+        response.set_cookie(
+            context.auth_token_name, auth_token, secure=is_production(), httponly=True
+        )
         return response
 
 
