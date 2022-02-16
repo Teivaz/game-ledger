@@ -12,11 +12,8 @@ ENV POETRY_VERSION="1.1.12" \
 	POETRY_HOME="/opt/poetry"
 RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
 ENV PATH="$PATH:$POETRY_HOME/bin"
-# RUN source ${HOME}/.profile
-# RUN source $HOME/.poetry/env
-
 COPY pyproject.toml poetry.lock ./
-RUN /opt/poetry/bin/poetry export -f requirements.txt --without-hashes --output requirements.txt
+RUN poetry export -f requirements.txt --without-hashes --output requirements.txt
 
 
 FROM base as app
