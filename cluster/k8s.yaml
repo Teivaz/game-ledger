@@ -77,6 +77,9 @@ spec:
           ports:
             - containerPort: 8000
           env:
+            - name: FLASK_ENV
+              value: production
+              # value: development
             - name: APP_NUM_WORKERS
               value: "1"
             - name: APP_HOST
@@ -111,8 +114,8 @@ metadata:
   name: frontend
 spec:
   ports:
-    - port: 8000
-      targetPort: 8000
+    - port: 3000
+      targetPort: 3000
   selector:
     app: frontend
 ---
@@ -136,7 +139,7 @@ spec:
         - name: game-ledger
           image: game-ledger-frontend:0.1.0
           ports:
-            - containerPort: 8000
+            - containerPort: 3000
           env:
             - name: gameledger__postgres_host
               value: postgres
@@ -163,9 +166,11 @@ data:
     http {
       upstream backend {
         server backend:8000;
+        # server host.docker.internal:5000; # Use for local deployment
       }
       upstream frontend {
-        server frontend:8000;
+        server frontend:3000;
+        # server host.docker.internal:3000; # Use for local deployment
       }
 
       server {
