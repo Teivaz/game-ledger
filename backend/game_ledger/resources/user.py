@@ -3,7 +3,8 @@ from typing import List, Any
 from game_ledger.access_manager import AlManagedClass, AlManagedField, AccessLevel
 from datetime import timedelta
 from werkzeug.exceptions import *
-
+import logging
+_logger = logging.getLogger(__name__)
 _alphabet = string.ascii_letters + string.digits
 _token_size = 255
 
@@ -41,6 +42,7 @@ class User(AlManagedClass):
     def create_auth_token(
         self, conn: connection, duration: timedelta, source: str
     ) -> str:
+        _logger.debug("Creating auth token")
         token = "".join(secrets.choice(_alphabet) for i in range(_token_size))
         with conn:
             with conn.cursor() as cur:
@@ -55,6 +57,7 @@ class User(AlManagedClass):
 
     @staticmethod
     def auth_by_token(conn: connection, token: str) -> "User":
+        _logger.debug("Auth by token")
         with conn.cursor() as cur:
             cur.execute(
                 """
@@ -116,6 +119,7 @@ class User(AlManagedClass):
 
     @staticmethod
     def create(conn: connection, name: str, email: str):
+        _logger.debug("Creating user")
         result = User()
         result.name = name
         result.email = email
@@ -135,6 +139,7 @@ class User(AlManagedClass):
 
 
     def save(self, conn: connection):
+        _logger.info("Saving user")
         with conn:
             with conn.cursor() as cur:
                 cur.execute(
@@ -153,6 +158,7 @@ class User(AlManagedClass):
                 )
 
     def delete(self, conn: connection):
+        _logger.info("Deleting user")
         with conn:
             with conn.cursor() as cur:
                 cur.execute("DELETE FROM users WHERE id = %s", (self.id,))

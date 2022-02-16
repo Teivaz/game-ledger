@@ -5,6 +5,7 @@
     <option name="PARENT_ENVS" value="true" />
     <envs>
       <env name="PYTHONUNBUFFERED" value="1" />
+      <env name="FLASK_ENV" value="development" />
     </envs>
     <option name="SDK_HOME" value="C:\Users\Joe\AppData\Local\pypoetry\Cache\virtualenvs\game-ledger-ml-qNMSA-py3.8\Scripts\python.exe" />
     <option name="WORKING_DIRECTORY" value="" />

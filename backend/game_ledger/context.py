@@ -6,9 +6,12 @@ from werkzeug.exceptions import *
 from psycopg2 import connect
 import flask
 import typing as t
+import logging
+_logger = logging.getLogger(__name__)
 
 
 def init():
+    _logger.debug("Initializing context")
     context = {}
 
     context["db_connection"] = connect(
@@ -39,6 +42,7 @@ def get_db_connection():
 
 
 def send_auth_email(email: str, token: str):
+    _logger.info("Sending Auth Email")
     base_url = cfg["base_url"]
     send_mail(
         to_email=email,
@@ -51,6 +55,7 @@ def send_auth_email(email: str, token: str):
 
 
 def send_register_email(email: str, token: str):
+    _logger.info("Sending Register Email")
     base_url = cfg["base_url"]
     send_mail(
         to_email=email,
