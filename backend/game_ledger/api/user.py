@@ -1,13 +1,16 @@
-from multiprocessing import context
 from game_ledger import context
 from werkzeug.exceptions import *
 from datetime import timedelta
 from flask import Blueprint, request, redirect, jsonify
 from flask.views import MethodView
 from game_ledger.resources.user import User
+import flask
 
 _auth_token_name = "gl_auth_token"
 
+
+def is_production():
+    return flask.current_app.config["ENV"] == "production"
 
 class UserApi(MethodView):
     @staticmethod
@@ -117,7 +120,7 @@ class UserRegisterApi(MethodView):
         )
 
         response = redirect(redirect_url)
-        response.set_cookie(_auth_token_name, auth_token, secure=True, httponly=True)
+        response.set_cookie(_auth_token_name, auth_token, secure=is_production(), httponly=True)
         return response
 
 
@@ -151,7 +154,7 @@ class UserSignInApi(MethodView):
         auth_token = context.get_token_controller().use_signin_token(token)
 
         response = redirect(redirect_url)
-        response.set_cookie(_auth_token_name, auth_token, secure=True, httponly=True)
+        response.set_cookie(_auth_token_name, auth_token, secure=is_production(), httponly=True)
         return response
 
 

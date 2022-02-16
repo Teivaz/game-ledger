@@ -30,4 +30,14 @@ def elasticmail_send_mail(
         raise InternalServerError()
 
 
-send_mail = elasticmail_send_mail
+def print_to_console(
+    to_email: str,
+    from_email: str,
+    from_name: str,
+    subject: str,
+    body_text: str,
+    body_html: str,):
+    print(body_text)
+
+
+send_mail = print_to_console
