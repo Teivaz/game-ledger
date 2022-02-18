@@ -147,7 +147,7 @@ class UserSignInApi(MethodView):
         return response
 
 
-user_blueprint = Blueprint("user", __name__, url_prefix="user")
+user_blueprint = Blueprint("user", __name__, url_prefix="user/")
 user_blueprint.add_url_rule("/", view_func=UserApi.as_view("user"))
 user_blueprint.add_url_rule("signin/", view_func=UserSignInApi.as_view("user_sign_in"))
 user_blueprint.add_url_rule(

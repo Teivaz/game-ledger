@@ -111,5 +111,5 @@ Following names are directly linked to the eponymous resource and are URL paths 
 
 1. `/api/data/`
 
-   1. `POST` - AL 4. Requires header `Content-Type` with the MIME type of the data being stored. Upon success the user is set as an owner of the created resource.
+   1. `POST` - AL 4. Requires header `Content-Type` with the MIME type of the data being stored. Upon success the user is set as an owner of the created resource and the json object with field `id` is returned containing the identifier of the created resource.
    1. `GET` – AL 4. Requires single parameter `id` of the requested resource. The response contains header `Content-Type`, `Content-Length` and the binary body containing the data from the `content` field.
